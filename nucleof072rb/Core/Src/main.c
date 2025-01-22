@@ -66,8 +66,8 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t spi_read_buffer[24] = {[7] = 0b01, [8] = 0b01 }; //[9-11] =0bDDD indicating channel select, [9] is don't care in this case
-	uint8_t spi_write_buffer[24];
+	uint8_t spi_read_buffer[3] = {[0] = 0b01, [1] = 0b10000000  };
+	uint8_t spi_write_buffer[3];
 	double MAX_ADC_VALUE = (2^10) - 1;
   /* USER CODE END 1 */
 
@@ -100,15 +100,12 @@ int main(void)
   while (1)
   {
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_RESET);
-	  HAL_SPI_TransmitReceive(&hspi1, spi_read_buffer, spi_write_buffer, 24, 10);
+	  HAL_SPI_TransmitReceive(&hspi1, spi_read_buffer, spi_write_buffer, 3, 10);
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET);
 
-	  uint8_t index = 14;
-	  uint16_t adc_scaler;
 
-	  for(; index < 24; ++index){
-		  adc_scaler = adc_scaler + (spi_write_buffer[index]<< (24 - index - 1));
-	  }
+	  uint16_t adc_scaler = ((spi_write_buffer[2] & 0b11) << 2^8) + spi_write_buffer[2];
+
 
 	  uint16_t pulse = 60000 *(0.05 + 0.05 * adc_scaler / MAX_ADC_VALUE); // Linearly scale between 5 and 10 percent of the counter period
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
