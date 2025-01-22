@@ -104,7 +104,7 @@ int main(void)
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET);
 
 
-	  uint16_t adc_scaler = ((spi_write_buffer[2] & 0b11) << 2^8) + spi_write_buffer[2];
+	  uint16_t adc_scaler = ((spi_write_buffer[2] & 0b11) << 8) + spi_write_buffer[2];
 
 
 	  uint16_t pulse = 60000 *(0.05 + 0.05 * adc_scaler / MAX_ADC_VALUE); // Linearly scale between 5 and 10 percent of the counter period
