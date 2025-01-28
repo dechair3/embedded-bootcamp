@@ -66,9 +66,9 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t spi_read_buffer[3] = {[0] = 0b01, [1] = 0b10000000  };
-	uint8_t spi_write_buffer[3];
-	double MAX_ADC_VALUE = (2^10) - 1;
+	uint8_t TxBuffer[3] = {[0] = 0x01, [1] = 0x80};
+	uint8_t RxBuffer[3];
+	const uint16_t MAX_ADC_VALUE = (2^10) - 1;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -92,22 +92,22 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET); // ADC needs CS to be low for communication
+
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 3200);
   while (1)
   {
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_RESET);
-	  HAL_SPI_TransmitReceive(&hspi1, spi_read_buffer, spi_write_buffer, 3, 10);
+	  HAL_SPI_TransmitReceive(&hspi1, TxBuffer, RxBuffer, 3, 10);
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET);
 
 
-	  uint16_t adc_val = ((spi_write_buffer[2] & 0b11) << 8) + spi_write_buffer[2];
-	  double adc_scaled_val = (double)adc_val / MAX_ADC_VALUE;
-
-	  uint16_t pulse = 60000 *(0.05 + 0.05 * adc_scaled_val ); // Linearly scale between 5 and 10 percent of the counter period
+	  uint16_t adc_val = ((RxBuffer[2] & 0x03) << 8) + RxBuffer[3];
+	  uint16_t pulse = 3200 + 3200 * adc_val/MAX_ADC_VALUE // Linearly scale between 5 and 10 percent of the counter period
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
 
 	  HAL_Delay(10);
