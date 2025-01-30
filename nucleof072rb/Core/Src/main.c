@@ -23,6 +23,8 @@
 #include "tim.h"
 #include "gpio.h"
 
+
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -68,7 +70,8 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t TxBuffer[3] = {[0] = 0x01, [1] = 0x80};
 	uint8_t RxBuffer[3];
-	const uint16_t MAX_ADC_VALUE = (2^10) - 1;
+	static const uint16_t MAX_ADC_VALUE = (2^10) - 1;
+	static const int PWM_MIN_PULSE = 3200;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,6 +102,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 3200);
+  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET);
   while (1)
   {
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_RESET);
@@ -107,7 +111,7 @@ int main(void)
 
 
 	  uint16_t adc_val = ((RxBuffer[2] & 0x03) << 8) + RxBuffer[3];
-	  uint16_t pulse = 3200 + 3200 * adc_val/MAX_ADC_VALUE // Linearly scale between 5 and 10 percent of the counter period
+	  uint16_t pulse = PWM_MIN_PULSE + PWM_MIN_PULSE * adc_val / MAX_ADC_VALUE; // Linearly scale between 5 and 10 percent of the counter period
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
 
 	  HAL_Delay(10);
