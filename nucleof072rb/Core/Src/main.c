@@ -110,7 +110,7 @@ int main(void)
 	  HAL_GPIO_WritePin(SPI_Chip_Select_GPIO_Port, SPI_Chip_Select_Pin, GPIO_PIN_SET);
 
 
-	  uint16_t adc_val = ((RxBuffer[2] & 0x03) << 8) + RxBuffer[3];
+	  uint16_t adc_val = ((RxBuffer[1] & 0x03) << 8) + RxBuffer[2];
 	  uint16_t pulse = PWM_MIN_PULSE + PWM_MIN_PULSE * adc_val / MAX_ADC_VALUE; // Linearly scale between 5 and 10 percent of the counter period
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
 
